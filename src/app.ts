@@ -22,7 +22,7 @@ interface DemoScopeNameInfo extends ScopeNameInfo {
   path: string;
 }
 
-main('python');
+main('bigquery');
 
 async function main(language: LanguageId) {
   // In this demo, the following values are hardcoded to support Python using
@@ -64,11 +64,30 @@ async function main(language: LanguageId) {
       filenames: ['Snakefile', 'BUILD', 'BUCK', 'TARGETS'],
       firstLine: '^#!\\s*/?.*\\bpython[0-9.-]*\\b',
     },
+    {
+      id: "bigquery",
+      aliases: [
+        "SQL (BigQuery)",
+        "sql-bigquery"
+      ],
+      extensions: [
+        ".sql",
+        ".ddl",
+        ".dml",
+        ".bqsql",
+        ".bqddl",
+        ".bqdml"
+      ],
+    }
   ];
   const grammars: {[scopeName: string]: DemoScopeNameInfo} = {
     'source.python': {
       language: 'python',
       path: 'MagicPython.tmLanguage.json',
+    },
+    'source.bigquery': {
+      language: 'bigquery',
+      path: 'bigquery.tmLanguage.json',
     },
   };
 
@@ -154,6 +173,40 @@ async def bar(): string:
   f_string = f"Hooray {f}! format strings are not supported in current Monarch grammar"
   return foo_string
 `;
+  } else if (language === 'bigquery') {
+    return `
+WITH temp1 AS (
+  SELECT
+    sample_barcode_tumor,
+    Hugo_Symbol,
+    Variant_Classification,
+    Variant_Type,
+    SIFT,
+    PolyPhen
+  FROM \`isb-cgc-bq.TCGA_versioned.somatic_mutation_hg38_gdc_r10\`
+  GROUP BY
+    sample_barcode_tumor,
+    Hugo_Symbol,
+    Variant_Classification,
+    Variant_Type,
+    SIFT,
+    PolyPhen)
+SELECT
+  COUNT(*) AS num,
+  Hugo_Symbol,
+  Variant_Classification,
+  Variant_Type,
+  SIFT,
+  PolyPhen
+FROM temp1
+GROUP BY
+  Hugo_Symbol,
+  Variant_Classification,
+  Variant_Type,
+  SIFT,
+  PolyPhen
+ORDER BY num DESC
+`
   }
 
   throw Error(`unsupported language: ${language}`);
